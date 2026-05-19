@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Upload, Calendar, BookOpen, FileText, ClipboardCheck } from 'lucide-react';
+import { X, Upload, Calendar, BookOpen, FileText, ClipboardCheck, Paperclip } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 
 interface AssignmentModalProps {
@@ -19,6 +19,7 @@ export interface AssignmentInput {
   deadline: string;
   dateAssigned: string;
   syllabus: string;
+  pdfFile?: File | null;
 }
 
 const inputClass = "w-full bg-lumina-surface-low/60 border border-outline-variant/30 rounded-xl px-3.5 py-2.5 text-on-surface text-sm placeholder:text-on-surface-variant/40 focus:outline-none focus:border-lumina-accent/60 focus:ring-1 focus:ring-lumina-accent/30 transition-colors resize-none";
@@ -26,7 +27,7 @@ const inputClass = "w-full bg-lumina-surface-low/60 border border-outline-varian
 export default function AssignmentModal({ open, onClose, onSubmit, hellWeek }: AssignmentModalProps) {
   const [form, setForm] = useState<AssignmentInput>({
     courseCode: '', courseName: '', courseDesc: '', assignmentTitle: '',
-    instructions: '', rubric: '', deadline: '', dateAssigned: '', syllabus: ''
+    instructions: '', rubric: '', deadline: '', dateAssigned: '', syllabus: '', pdfFile: null
   });
 
   if (!open) return null;
@@ -34,9 +35,21 @@ export default function AssignmentModal({ open, onClose, onSubmit, hellWeek }: A
   const set = (k: keyof AssignmentInput) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setForm(f => ({ ...f, pdfFile: e.target.files![0] }));
+    }
+  };
+
   const handleSubmit = () => {
     if (!form.assignmentTitle || !form.deadline) return;
     onSubmit(form);
+    
+    // Reset form after submission
+    setForm({
+      courseCode: '', courseName: '', courseDesc: '', assignmentTitle: '',
+      instructions: '', rubric: '', deadline: '', dateAssigned: '', syllabus: '', pdfFile: null
+    });
     onClose();
   };
 
@@ -101,12 +114,32 @@ export default function AssignmentModal({ open, onClose, onSubmit, hellWeek }: A
             </div>
           </div>
 
-          {/* Syllabus */}
+          {/* Syllabus & Attachments */}
           <div>
             <p className="text-[10px] font-mono uppercase tracking-widest text-on-surface-variant/60 mb-3 flex items-center gap-1.5">
-              <Upload className="w-3 h-3" /> Syllabus (Optional)
+              <Upload className="w-3 h-3" /> Materials
             </p>
-            <textarea className={inputClass} placeholder="Paste your syllabus content here..." rows={3} value={form.syllabus} onChange={set('syllabus')} />
+            <div className="flex flex-col gap-3">
+              <textarea className={inputClass} placeholder="Paste your syllabus content here (Optional)..." rows={3} value={form.syllabus} onChange={set('syllabus')} />
+              
+              <div className={cn("border rounded-xl p-3 flex flex-col gap-2", hellWeek ? "border-red-900/30 bg-[#1e0c0c]/40" : "border-outline-variant/30 bg-lumina-surface-low/40")}>
+                <label className="text-xs text-on-surface-variant flex items-center gap-1.5 cursor-pointer hover:text-lumina-primary transition-colors">
+                  <Paperclip className="w-3.5 h-3.5" />
+                  Attach PDF Document (Optional)
+                  <input 
+                    type="file" 
+                    accept="application/pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+                {form.pdfFile && (
+                  <p className="text-xs font-mono text-emerald-400 bg-emerald-900/20 px-2 py-1 rounded inline-block">
+                    Attached: {form.pdfFile.name}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 

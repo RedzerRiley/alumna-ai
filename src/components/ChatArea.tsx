@@ -1,16 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Paperclip, ArrowUp, LayoutDashboard, Plus, Flame, X, ClipboardCheck } from 'lucide-react';
+import { Sparkles, ArrowUp, LayoutDashboard, Plus, Flame, ClipboardCheck } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '@/src/lib/utils';
 import AssignmentModal, { type AssignmentInput } from './AssignmentModal';
 import DashboardPanel, { type Assignment, type ScheduleBlock } from './DashboardPanel';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-}
+import { Message } from '../App';
 
 function isExamWeek(assignments: Assignment[]): boolean {
   const now = new Date();
@@ -47,22 +42,30 @@ Keep responses focused, supportive, and practical. Use markdown formatting. Do n
 
 interface ChatAreaProps {
   hellWeek: boolean;
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  assignments: Assignment[];
+  setAssignments: React.Dispatch<React.SetStateAction<Assignment[]>>;
+  schedule: ScheduleBlock[];
+  setSchedule: React.Dispatch<React.SetStateAction<ScheduleBlock[]>>;
+  updateSessionTitle: (title: string) => void;
 }
 
-export default function ChatArea({ hellWeek }: ChatAreaProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '0',
-      role: 'assistant',
-      content: "Hello. I'm Alumna, your academic AI assistant.\n\nI can help you:\n- **Plan assignments** step by step\n- **Build and manage your study schedule**\n- **Summarize your syllabus**\n- **Reschedule missed sessions automatically**\n\nStart by adding an assignment using the **+** button, or just tell me what you're working on."
-    }
-  ]);
+export default function ChatArea({ 
+  hellWeek, 
+  messages, 
+  setMessages, 
+  assignments, 
+  setAssignments, 
+  schedule, 
+  setSchedule,
+  updateSessionTitle
+}: ChatAreaProps) {
+  
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [schedule, setSchedule] = useState<ScheduleBlock[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -92,6 +95,8 @@ export default function ChatArea({ hellWeek }: ChatAreaProps) {
   const sendMessage = async (msgContent: string) => {
     if (!msgContent.trim() || isLoading) return;
     const userMsg: Message = { id: Date.now().toString(), role: 'user', content: msgContent };
+    
+    // Update local context
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
     setInput('');
@@ -127,7 +132,7 @@ export default function ChatArea({ hellWeek }: ChatAreaProps) {
       const detail = error instanceof Error ? error.message : String(error);
       setMessages(prev => [...prev, {
         id: Date.now().toString(), role: 'assistant',
-        content: `**Connection error.** ${detail}\n\nMake sure:\n1. You have a \`.env\` file in the project root\n2. It contains \`GEMINI_API_KEY=your_actual_key\`\n3. You restarted the server after editing the file\n\nGet a free key at https://aistudio.google.com/apikey`
+        content: `**Connection error.** ${detail}\n\nMake sure your API key is correct and the server is running.`
       }]);
     } finally {
       setIsLoading(false);
@@ -135,6 +140,9 @@ export default function ChatArea({ hellWeek }: ChatAreaProps) {
   };
 
   const handleAssignmentSubmit = async (data: AssignmentInput) => {
+    // 1. Rename session to match assignment title
+    updateSessionTitle(data.assignmentTitle);
+
     const newAssignment: Assignment = {
       id: Date.now().toString(),
       courseCode: data.courseCode || 'COURSE',
@@ -155,11 +163,12 @@ export default function ChatArea({ hellWeek }: ChatAreaProps) {
       data.dateAssigned ? `Assigned on: ${data.dateAssigned}` : '',
       `Deadline: ${data.deadline}`,
       data.syllabus ? `Syllabus:\n${data.syllabus}` : '',
+      data.pdfFile ? `[Attached PDF File: ${data.pdfFile.name}]` : '',
       `\nPlease: (1) Give me a step-by-step plan to complete this assignment with time estimates, and (2) suggest a study schedule with specific dates and times as a schedule block.`,
     ].filter(Boolean).join('\n');
 
     await sendMessage(prompt);
-    if (isExamWeek([newAssignment])) {
+    if (isExamWeek([newAssignment, ...assignments])) {
       setShowDashboard(true);
     }
   };
@@ -328,7 +337,7 @@ export default function ChatArea({ hellWeek }: ChatAreaProps) {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="flex-1 bg-transparent border-none text-on-surface placeholder:text-on-surface-variant/40 focus:ring-0 px-2 py-1.5 text-sm resize-none min-h-[36px] max-h-[160px] leading-relaxed"
+                className="flex-1 bg-transparent border-none text-on-surface placeholder:text-on-surface-variant/40 focus:ring-0 px-2 py-1.5 text-sm resize-none min-h-[36px] max-h-[160px] leading-relaxed outline-none"
                 placeholder="Ask me to plan an assignment, build your schedule, or summarize your syllabus..."
                 rows={1}
               />
@@ -341,7 +350,7 @@ export default function ChatArea({ hellWeek }: ChatAreaProps) {
                     ? hellWeekActive
                       ? "bg-red-800/60 text-red-200 hover:bg-red-700/60"
                       : "bg-lumina-primary text-on-primary hover:opacity-90 glow-pulse"
-                    : "bg-white/8 text-white/20"
+                    : "bg-white/5 text-white/20"
                 )}
               >
                 <ArrowUp className="w-4 h-4" />

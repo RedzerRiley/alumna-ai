@@ -6,9 +6,12 @@ import {
   Plus, 
   Settings,
   LayoutDashboard,
-  Flame
+  Flame,
+  MessageCircle,
+  Trash2
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import { Session } from '../App';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -42,9 +45,22 @@ interface SidebarProps {
   onTabChange: (tab: string) => void;
   hellWeek: boolean;
   onNewSession: () => void;
+  sessions: Session[];
+  activeSessionId: string;
+  onSelectSession: (id: string) => void;
+  onDeleteSession: (id: string) => void;
 }
 
-export default function Sidebar({ activeTab, onTabChange, hellWeek, onNewSession }: SidebarProps) {
+export default function Sidebar({ 
+  activeTab, 
+  onTabChange, 
+  hellWeek, 
+  onNewSession, 
+  sessions, 
+  activeSessionId, 
+  onSelectSession,
+  onDeleteSession 
+}: SidebarProps) {
   return (
     <nav className={cn(
       "hidden md:flex flex-col p-4 gap-1 backdrop-blur-2xl border-r shadow-2xl fixed left-0 top-0 h-screen w-[260px] z-40 transition-colors duration-500",
@@ -78,12 +94,49 @@ export default function Sidebar({ activeTab, onTabChange, hellWeek, onNewSession
       )}
 
       {/* Nav */}
-      <div className="flex-1 flex flex-col gap-0.5 overflow-y-auto">
+      <div className="flex flex-col gap-0.5">
         <p className="px-3 pt-1 pb-1.5 text-[10px] font-mono uppercase tracking-widest text-on-surface-variant/50">Main</p>
         <NavItem icon={<MessageSquare className="w-4 h-4" />} label="AI Assistant" active={activeTab === 'chat'} onClick={() => onTabChange('chat')} hellWeek={hellWeek} />
         <NavItem icon={<CalendarDays className="w-4 h-4" />} label="Schedule" active={activeTab === 'schedule'} onClick={() => onTabChange('schedule')} hellWeek={hellWeek} />
         <NavItem icon={<ClipboardList className="w-4 h-4" />} label="Assignments" active={activeTab === 'assignments'} onClick={() => onTabChange('assignments')} hellWeek={hellWeek} />
         <NavItem icon={<BookOpen className="w-4 h-4" />} label="Syllabi" active={activeTab === 'syllabi'} onClick={() => onTabChange('syllabi')} hellWeek={hellWeek} />
+      </div>
+
+      {/* Sessions List */}
+      <div className="flex-1 overflow-y-auto mt-4 border-t border-outline-variant/10 pt-4 flex flex-col gap-0.5">
+        <p className="px-3 pb-1.5 text-[10px] font-mono uppercase tracking-widest text-on-surface-variant/50">Recent Sessions</p>
+        {sessions.map(session => (
+          <div key={session.id} className="relative group flex items-center">
+            <button
+              onClick={() => {
+                onSelectSession(session.id);
+                onTabChange('chat');
+              }}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2 text-sm rounded-xl transition-all text-left truncate pr-8",
+                activeSessionId === session.id 
+                  ? hellWeek ? "bg-red-900/20 text-red-200" : "bg-lumina-surface-bright/60 text-on-surface font-medium" 
+                  : "text-on-surface-variant hover:bg-lumina-surface-bright/20 hover:text-on-surface"
+              )}
+            >
+              <MessageCircle className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="truncate">{session.title}</span>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteSession(session.id);
+              }}
+              className={cn(
+                "absolute right-2 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity",
+                hellWeek ? "hover:bg-red-900/40 text-red-400" : "hover:bg-lumina-surface-bright text-on-surface-variant hover:text-red-400"
+              )}
+              title="Delete session"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ))}
       </div>
 
       {/* Bottom */}
