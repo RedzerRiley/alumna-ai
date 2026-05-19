@@ -4,12 +4,8 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
+// Load .env before anything else
 dotenv.config();
-
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || "",
-  httpOptions: { headers: { 'User-Agent': 'lumina-ai' } }
-});
 
 async function startServer() {
   const app = express();
@@ -18,8 +14,20 @@ async function startServer() {
   app.use(express.json({ limit: '2mb' }));
 
   app.post("/api/chat", async (req, res) => {
+    // Resolve key at request time so it's always fresh from env
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === "your_gemini_api_key_here" || apiKey.trim() === "") {
+      res.status(500).json({
+        error: "Missing API key",
+        detail: "Add your Gemini API key to the .env file as GEMINI_API_KEY=... then restart the server. Get a key at https://aistudio.google.com/apikey"
+      });
+      return;
+    }
+
     try {
       const { message, history, systemPrompt } = req.body;
+
+      const ai = new GoogleGenAI({ apiKey });
 
       // Build Gemini history format
       const geminiHistory = (history || [])
@@ -30,9 +38,9 @@ async function startServer() {
         }));
 
       const chat = ai.chats.create({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         config: {
-          systemInstruction: systemPrompt || "You are Lumina, an AI academic assistant. Help students plan assignments, build study schedules, and summarize syllabi.",
+          systemInstruction: systemPrompt || "You are Alumna, an AI academic assistant. Help students plan assignments, build study schedules, and summarize syllabi.",
         },
         history: geminiHistory,
       });
@@ -61,7 +69,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Lumina AI running on http://localhost:${PORT}`);
+    console.log(`Alumna AI running on http://localhost:${PORT}`);
   });
 }
 

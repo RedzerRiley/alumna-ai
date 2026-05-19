@@ -49,7 +49,7 @@ export default function App() {
           hellWeek ? "bg-[#160808]/70 border-red-900/30" : "bg-lumina-bg/70 border-outline-variant/10"
         )}>
           <span className={cn("font-bold text-base", hellWeek ? "text-red-300" : "text-lumina-primary")} style={{ fontFamily: 'Syne, sans-serif' }}>
-            Alumna
+            Alumna AI
           </span>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

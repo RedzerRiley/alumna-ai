@@ -15,10 +15,11 @@ interface Message {
 function isExamWeek(assignments: Assignment[]): boolean {
   const now = new Date();
   const in7 = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-  return assignments.some(a => {
+  const count = assignments.filter(a => {
     const d = new Date(a.deadline);
     return d >= now && d <= in7 && a.status !== 'done';
-  });
+  }).length;
+  return count >= 3;
 }
 
 function buildSystemPrompt(assignments: Assignment[], schedule: ScheduleBlock[]): string {
@@ -106,6 +107,11 @@ export default function ChatArea({ hellWeek }: ChatAreaProps) {
           systemPrompt: buildSystemPrompt(assignments, schedule)
         }),
       });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        const detail = errData.detail || errData.error || `Server error ${res.status}`;
+        throw new Error(detail);
+      }
       const data = await res.json();
       const aiMsg: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: data.text };
       setMessages(prev => [...prev, aiMsg]);
@@ -118,9 +124,10 @@ export default function ChatArea({ hellWeek }: ChatAreaProps) {
       }
     } catch (error) {
       console.error(error);
+      const detail = error instanceof Error ? error.message : String(error);
       setMessages(prev => [...prev, {
         id: Date.now().toString(), role: 'assistant',
-        content: 'Failed to connect. Please check your API key in the .env file.'
+        content: `**Connection error.** ${detail}\n\nMake sure:\n1. You have a \`.env\` file in the project root\n2. It contains \`GEMINI_API_KEY=your_actual_key\`\n3. You restarted the server after editing the file\n\nGet a free key at https://aistudio.google.com/apikey`
       }]);
     } finally {
       setIsLoading(false);

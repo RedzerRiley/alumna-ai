@@ -67,7 +67,7 @@ export default function Sidebar({ activeTab, onTabChange, hellWeek, onNewSession
           "text-lg font-bold tracking-tight",
           hellWeek ? "text-red-300" : "text-lumina-primary"
         )} style={{ fontFamily: 'Syne, sans-serif' }}>
-          {hellWeek ? "HELL WEEK" : "Alumna"}
+          {hellWeek ? "HELL WEEK" : "Alumna AI"}
         </span>
       </div>
 
