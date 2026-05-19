@@ -30,7 +30,7 @@ function buildSystemPrompt(assignments: Assignment[], schedule: ScheduleBlock[])
     ? `\n\nCurrent study schedule:\n${schedule.map(s => `- ${s.date} ${s.time}: ${s.task} (${s.course}, ${s.duration})`).join('\n')}`
     : '';
   const hellCtx = isExamWeek(assignments) ? '\n\nNOTE: It is currently exam/hell week. Acknowledge the high-stress period, keep the student focused, and prioritize ruthlessly.' : '';
-  return `You are Lumina, an AI academic assistant for students. Today is ${today}.
+  return `You are Alumna, an AI academic assistant for students. Today is ${today}.
 
 Your core capabilities:
 1. STEP-BY-STEP PLANS: When given an assignment, break it into clear, actionable steps with time estimates.
@@ -53,7 +53,7 @@ export default function ChatArea({ hellWeek }: ChatAreaProps) {
     {
       id: '0',
       role: 'assistant',
-      content: "Hello. I'm Lumina, your academic AI assistant.\n\nI can help you:\n- **Plan assignments** step by step\n- **Build and manage your study schedule**\n- **Summarize your syllabus**\n- **Reschedule missed sessions automatically**\n\nStart by adding an assignment using the **+** button, or just tell me what you're working on."
+      content: "Hello. I'm Alumna, your academic AI assistant.\n\nI can help you:\n- **Plan assignments** step by step\n- **Build and manage your study schedule**\n- **Summarize your syllabus**\n- **Reschedule missed sessions automatically**\n\nStart by adding an assignment using the **+** button, or just tell me what you're working on."
     }
   ]);
   const [input, setInput] = useState('');
@@ -252,7 +252,7 @@ export default function ChatArea({ hellWeek }: ChatAreaProps) {
                 {/* Bubble */}
                 <div className={cn("flex flex-col gap-0.5", msg.role === 'user' ? "items-end" : "items-start")}>
                   <p className="text-[10px] font-mono uppercase tracking-widest text-on-surface-variant/50 px-1">
-                    {msg.role === 'assistant' ? 'Lumina' : 'You'}
+                    {msg.role === 'assistant' ? 'Alumna' : 'You'}
                   </p>
                   <div className={cn(
                     "px-5 py-4 rounded-2xl border text-sm leading-relaxed",
@@ -341,7 +341,7 @@ export default function ChatArea({ hellWeek }: ChatAreaProps) {
               </button>
             </div>
             <p className="text-center mt-2 text-[10px] text-on-surface-variant/30 font-mono">
-              Lumina is an AI assistant. Verify important academic information.
+              Alumna is an AI assistant. Verify important academic information.
             </p>
           </div>
         </div>
