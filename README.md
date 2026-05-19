@@ -1,4 +1,4 @@
-# Lumina AI — Academic Study Assistant
+# Alumna AI — Academic Study Assistant
 
 An AI-powered study dashboard for students. Built with React, Vite, and Gemini 2.0 Flash.
 
